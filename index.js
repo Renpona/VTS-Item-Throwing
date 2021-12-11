@@ -8,12 +8,22 @@ const vtsConnection = require('./vts_modules/vtsConnector');
 vtsConnection.eventEmitter.once("authComplete", startCode);
 vtsConnection.connect();
 
+//initialize containers that carry physics data across frames/loops
 var physicsState = null;
 var caughtList = [];
 var momentumListX = [];
 var momentumListY = [];
 
+//IMPORTANT: the number of items should be set here
 const itemCount = 2;
+
+//avatar customization parameters
+const hitboxHandX = 35;
+const hitboxHandY = 25;
+const bottomBoundary = -20;
+const topBoundary = 530;
+const leftBoundary = -175;
+const rightBoundary = 175;
 
 //physics constants
 const throwImpulse = 140;
@@ -21,23 +31,13 @@ const throwThreshold = 1;
 const horizThrowMultiplier = 8.5;
 const horizSpeedCap = 200;
 const gravityConst = -10;
-const hitboxHandX = 35;
-const hitboxHandY = 25;
 const momentumLowerCap = -20;
 const momentumDecay = 0.95;
-const bottomBoundary = -20;
-const topBoundary = 530;
-const leftBoundary = -175;
-const rightBoundary = 175;
 
+//physics randomization constants
 const randomStartForce = 100;
 const randomThrowXFactor = 5;
 const randomThrowYFactor = throwImpulse * 0.2;
-
-/**
-  TODO: Other users won't rig their hands with positive in the same direction,
-  so some param-flipping in the program will likely be needed to support other users
- */ 
 
 function startCode() {
     if (itemCount < 1) {
@@ -57,6 +57,9 @@ function startCode() {
 
     vtsConnection.sendRequest(utils.buildRequest("Live2DParameterListRequest"));
 }
+
+//TODO: write end function that removes the event listeners, halting the physics loop
+//function endCode()
 
 function randomize(multiplier) {
     return Math.random() * multiplier;
@@ -98,7 +101,8 @@ function readPhysicsParams(data) {
                 physicsData.handLY = element.value;
                 break;
             case "RHandPositionX":
-                physicsData.handRX = element.value;
+                //By default, the right hand will have the opposite coordinate space from the left, so reverse it when reading
+                physicsData.handRX = element.value * (-1);
                 break;
             case "RHandPositionY":
                 physicsData.handRY = element.value;
